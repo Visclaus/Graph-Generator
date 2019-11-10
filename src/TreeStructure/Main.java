@@ -6,13 +6,6 @@ public class Main {
 
         System.out.println(tree);
         System.out.println(tree.getVertexCnt());
-/*        tree.worker = ()-> System.out.println();
-        tree.worker = new Workable() {
-            @Override
-            public void represent() {
-                System.out.println("fdsf");
-            }
-        };
-        tree.work();*/
+        System.out.println(tree.getTerminalVertexes());
     }
 }
