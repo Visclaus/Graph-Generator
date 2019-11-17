@@ -120,9 +120,27 @@ import java.util.*;
 
         @Override
         public String toString() {
-            return "(" + index + "-" + parentIndex + "-" + (childList != null ? childList.size() : 0 ) + ")";
+            return "(" + index + "-" + parentIndex /*+ "-" + (childList != null ? childList.size() : 0 )*/ + ")";
         }
 
+    }
+
+    public String noChild(){
+        Deque<TreeNode> nodeQueue = new LinkedList<>();
+        nodeQueue.addLast(root);
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        while (!nodeQueue.isEmpty()) {
+            TreeNode processedNode = nodeQueue.removeFirst();
+            if((processedNode.childList != null ? processedNode.childList.size() : 0) == 0) {
+                builder.append(processedNode.index);
+                builder.append(", ");
+            }
+            if (processedNode.childList == null) continue;
+            for (TreeNode childNode : processedNode.childList) nodeQueue.addLast(childNode);
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
     @Override

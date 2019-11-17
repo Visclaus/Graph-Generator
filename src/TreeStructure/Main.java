@@ -4,7 +4,7 @@ public class Main {
     public static void main(String[] args) {
         int vertexCnt = 0;
         Tree tree = null;
-        while(vertexCnt < 200){
+        while(vertexCnt < 300){
             tree = new Tree(200, 5, true);
             vertexCnt = tree.getVertexCnt();
         }
@@ -16,7 +16,9 @@ public class Main {
         }
         System.out.println("-----------------------------------------------");
         System.out.println(tree.getVertexCnt());
+        //System.out.println(tree.noChild());
         System.out.println(tree.getTerminalVertexes());
+        System.out.println(tree.getTerminalVertexes().size());
         System.out.println("alpha: "+(double)tree.getVertexCnt()/(double) tree.getTerminalVertexes().size());
     }
 }
