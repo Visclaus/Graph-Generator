@@ -1,5 +1,8 @@
 package TreeStructure;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -14,8 +17,9 @@ import java.util.*;
  class Tree {
 
     private TreeNode root;
+    public int[] gI = {0,0,0,0,0};
     private int vertexCnt;
-    private Vector<Integer> terminalVertexes = new Vector<>();
+    private LinkedList<TreeNode> terminalVertexes = new LinkedList<>();
     private HashMap<Integer, LinkedList<TreeNode>> hierarchy = new HashMap<>();
     private final Random generator = new Random();
 
@@ -31,7 +35,7 @@ import java.util.*;
         return hierarchy;
     }
 
-    public Vector<Integer> getTerminalVertexes() {
+    public LinkedList<TreeNode> getTerminalVertexes() {
         return terminalVertexes;
     }
 
@@ -44,6 +48,7 @@ import java.util.*;
         if(isRandom) {
             while (childCnt == 0) {
                 childCnt = generator.nextInt(maxChildCnt);
+                gI[childCnt]++;
             }
         }else childCnt = maxChildCnt;
         root.childList = new LinkedList<>();
@@ -55,55 +60,69 @@ import java.util.*;
     }
 
     Tree(int maxVertexCnt, int maxChildCnt, boolean isRandom) {
-        this.root = rootInitialize(maxChildCnt, isRandom);
-        Deque<TreeNode> nodeQueue = new LinkedList<>();
-        int curNodeIndex = this.root.childList.size() + 1;
-        int extremeHierarchyLevel = 0;
-        boolean isFirstOverFlowed = false;
-        int parentIndex = root.index;
-        for (TreeNode childNode : root.childList) {
-            if (childNode != null) {
-                nodeQueue.addLast(childNode);
+        File file = new File("graphics.txt");
+        try (FileWriter writer = new FileWriter(file)) {
+            this.root = rootInitialize(maxChildCnt, isRandom);
+            Deque<TreeNode> nodeQueue = new LinkedList<>();
+            int curNodeIndex = this.root.childList.size() + 1;
+            int extremeHierarchyLevel = 0;
+            boolean isFirstOverFlowed = false;
+            int parentIndex = root.index;
+            for (TreeNode childNode : root.childList) {
+                if (childNode != null) {
+                    nodeQueue.addLast(childNode);
+                }
             }
-        }
-        while (!nodeQueue.isEmpty()) {
-            TreeNode processedNode = nodeQueue.removeFirst();
-            int childCnt;
-            if(isRandom) {
-                childCnt = generator.nextInt(maxChildCnt);
-            }else childCnt = maxChildCnt;
+            int index = 1;
+            while (!nodeQueue.isEmpty()) {
+                writer.write(Integer.toString(index));
+                writer.write("\t");
+                writer.write(Integer.toString(curNodeIndex));
+                writer.write("\t");
+                writer.write(Double.toString(Math.round((double)curNodeIndex/((double)nodeQueue.size() + terminalVertexes.size() )* 1000.0) / 1000.0));
+                writer.write("\n");
+                index++;
+                TreeNode processedNode = nodeQueue.removeFirst();
+                int childCnt;
+                if (isRandom) {
+                    childCnt = generator.nextInt(maxChildCnt);
+                    gI[childCnt]++;
+                } else childCnt = maxChildCnt;
 
-            if (childCnt == 0) {
-                terminalVertexes.add(processedNode.index);
-                parentIndex ++;
-                continue;
-            }
-            if (curNodeIndex + 1 > maxVertexCnt && processedNode.hierarchyLevel != extremeHierarchyLevel) {
-                terminalVertexes.add(processedNode.index);
-                for (TreeNode node : nodeQueue) {
-                    terminalVertexes.add(node.index);
+                if (childCnt == 0) {
+                    terminalVertexes.add(processedNode);
+                    parentIndex++;
+                    continue;
                 }
-                break;
-            }
-            processedNode.childList = new LinkedList<>();
-            parentIndex ++;
-            for (int i = 0; i < childCnt; i++) {
-                curNodeIndex ++;
-                int childHierarchyLevel = processedNode.hierarchyLevel + 1;
-                TreeNode childNode = new TreeNode(curNodeIndex, parentIndex, childHierarchyLevel);
-                if (!hierarchy.containsKey(childHierarchyLevel)) {
-                    hierarchy.put(childHierarchyLevel, new LinkedList<TreeNode>());
+                if (curNodeIndex + 1 > maxVertexCnt && processedNode.hierarchyLevel != extremeHierarchyLevel) {
+                    terminalVertexes.add(processedNode);
+                    for (TreeNode node : nodeQueue) {
+                        terminalVertexes.add(node);
+                    }
+                    break;
                 }
-                hierarchy.get(childHierarchyLevel).add(childNode);
-                processedNode.childList.add(childNode);
+                processedNode.childList = new LinkedList<>();
+                parentIndex++;
+                for (int i = 0; i < childCnt; i++) {
+                    curNodeIndex++;
+                    int childHierarchyLevel = processedNode.hierarchyLevel + 1;
+                    TreeNode childNode = new TreeNode(curNodeIndex, parentIndex, childHierarchyLevel);
+                    if (!hierarchy.containsKey(childHierarchyLevel)) {
+                        hierarchy.put(childHierarchyLevel, new LinkedList<TreeNode>());
+                    }
+                    hierarchy.get(childHierarchyLevel).add(childNode);
+                    processedNode.childList.add(childNode);
+                }
+                if (curNodeIndex >= maxVertexCnt && !isFirstOverFlowed) {
+                    extremeHierarchyLevel = processedNode.hierarchyLevel;
+                    isFirstOverFlowed = true;
+                }
+                for (TreeNode childNode : processedNode.childList) nodeQueue.addLast(childNode);
             }
-            if (curNodeIndex >= maxVertexCnt && !isFirstOverFlowed) {
-                extremeHierarchyLevel = processedNode.hierarchyLevel;
-                isFirstOverFlowed = true;
-            }
-            for (TreeNode childNode : processedNode.childList) nodeQueue.addLast(childNode);
+            this.vertexCnt = curNodeIndex;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        this.vertexCnt = curNodeIndex;
     }
 
     static class TreeNode {
@@ -141,6 +160,10 @@ import java.util.*;
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    public double getAlphaValue(){
+        return (double) vertexCnt / (double) terminalVertexes.size();
     }
 
     @Override
